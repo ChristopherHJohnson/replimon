@@ -1,0 +1,66 @@
+# Courtesy of https://github.com/sgzijl
+# config.js includes elasticsearch:    "https://"+window.location.hostname+":443",
+
+<VirtualHost *:80>
+  ServerName wmde-mon.wmflabs.org
+#  RewriteEngine On
+#  RewriteCond %{HTTPS} off
+#  RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} 
+#</VirtualHost>
+
+#<VirtualHost 10.4.0.213:443>
+#  ServerName wmde-mon.wmflabs.org
+ 
+#  SSLEngine on
+#  SSLCertificateFile      /etc/ssl/certs/ssl-cert-snakeoil.pem
+#  SSLCertificateKeyFile   /etc/ssl/private/ssl-cert-snakeoil.key
+
+ 
+  DocumentRoot /usr/local/kibana
+  <Directory /usr/local//kibana>
+    Allow from all
+    Options -Multiviews
+  </Directory>
+ 
+  LogLevel Info
+  ErrorLog /var/log/apache2/error.log
+  CustomLog /var/log/apache2/access.log combined
+ 
+  # Set global proxy timeouts
+  <Proxy http://127.0.0.1:9200>
+    ProxySet connectiontimeout=5 timeout=90
+  </Proxy>
+ 
+  # Proxy for _aliases and .*/_search
+  <LocationMatch "^/(_nodes|.*/_nodes|_aliases|.*/_aliases|_search|.*/_search|_mapping|.*/_mapping)$">
+    ProxyPassMatch http://127.0.0.1:9200/$1
+    ProxyPassReverse http://127.0.0.1:9200/$1
+  </LocationMatch>
+
+  # Proxy for kibana-int/{dashboard,temp} stuff (if you don't want auth on /, then you will want these to be protected)
+  <LocationMatch "^/(kibana-int/dashboard/|kibana-int/temp)(.*)$">
+    ProxyPassMatch http://127.0.0.1:9200/$1$2
+    ProxyPassReverse http://127.0.0.1:9200/$1$2
+  </LocationMatch>
+ 
+  # Optional disable auth for a src IP (eg: your monitoring host or subnet)
+  <Location />
+	Order deny,allow
+        Allow from all
+        AuthType Basic
+        AuthName “Username/Password”
+        AuthUserFile /var/www/.htpasswd
+        Require valid-user
+#    Satisfy any
+ 
+#    AuthLDAPBindDN "CN=_ldapbinduser,OU=Users,DC=example,DC=com"
+#    AuthLDAPBindPassword "ldapbindpass"
+#    AuthLDAPURL "ldaps://ldap01.example.com ldap02.example.com/OU=Users,DC=example,DC=com?sAMAccountName?sub?(objectClass=*)"
+#    AuthType Basic
+#    AuthBasicProvider ldap
+#    AuthName "Please authenticate for Example dot com"
+#    AuthLDAPGroupAttributeIsDN on
+#    require valid-user
+  </Location>
+ 
+</VirtualHost>

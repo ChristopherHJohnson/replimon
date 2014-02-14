@@ -1,0 +1,25 @@
+Listen 8080
+<VirtualHost *:8080>
+        ServerAdmin webmaster@localhost
+                ServerName wmde-mon.wmflabs.org
+        DocumentRoot /var/www/
+        <Directory "/var/www/">
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel debug
+
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+
+        ProxyPass /phpmyadmin http://localhost:8080/phpMyAdmin
+        ProxyPassReverse /phpmyadmin http://localhost:8080/phpMyAdmin
+        ProxyPassReverseCookiePath /phpMyAdmin /phpmyadmin
