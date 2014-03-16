@@ -156,7 +156,7 @@ a2ensite kibana
 htpasswd /var/www/.htpasswd kibanauser
 
 #RUN APP
-/etc/init.d/elasticsearch start
+service elasticsearch start
 service redis-server start
 start logstash-agent
 service apache2 reload
