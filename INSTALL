@@ -153,6 +153,7 @@ cp /tmp/replimon/logstash*.jar /var/home/logstash
 cp /tmp/replimon/apache/kibana /etc/apache2/sites-available
 a2dissite default
 a2ensite kibana
+htpasswd /var/www/.htpasswd kibanauser
 
 #RUN APP
 /etc/init.d/elasticsearch start
