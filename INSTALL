@@ -81,6 +81,8 @@ $IncludeConfig /etc/rsyslog.d/*.conf
 
 CONFIGURE LOGSTASH
 useradd -r logstash
+mkdir /etc/logstash
+mkdir /etc/logstash/patterns
 mkdir /usr/local/logstash
 mkdir /var/home/logstash
 chown logstash /var/home/logstash
@@ -95,10 +97,24 @@ input {
   }
 }
 
+filter {
+  grok {
+    patterns_dir => "/etc/logstash/patterns"
+    overwrite => "message"
+      match => {
+        "message" => "^(?:<%{POSINT:syslog_pri}>)?%{SYSLOGTIMESTAMP:timestamp} %{IPORHOST:logsource} ?\[%{DATESTAMP_ISO:isodatestamp}%{SPACE}%{TIMESTAMP_ISO:isotimestamp},%{NUMBER}: %{SYSLOGPROG}\] ?%{GREEDYDATA:messag$
+          }
+    }
+}
+
 output {
 stdout { codec => rubydebug }
   redis { host => "127.0.0.1" data_type => "list" key => "logstash" }
 }
+
+#BEGIN "/etc/logstash/patterns/time"
+DATESTAMP_ISO %{YEAR}-%{MONTHNUM}-%{MONTHDAY}
+TIMESTAMP_ISO %{HOUR}:?%{MINUTE}(?::?%{SECOND})
 
 #BEGIN "/etc/init/logstash-agent.conf"
 # logstash - agent instance
